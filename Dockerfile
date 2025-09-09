@@ -21,11 +21,11 @@ COPY *.py ./
 RUN mkdir -p output
 
 # Expose port
-EXPOSE 5000
+EXPOSE 5003
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:5000/health || exit 1
+  CMD curl -f http://localhost:5003/health || exit 1
 
 # Run the application
 CMD ["python", "app.py"]

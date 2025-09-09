@@ -14,6 +14,7 @@ venv.bak/
 test_output/
 output/
 *.log
+test_concurrency.py
 
 # IDE
 .vscode/

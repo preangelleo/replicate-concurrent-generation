@@ -4,9 +4,7 @@ Supports only flux-dev, flux-kontext-max, and qwen-image models
 """
 
 import os
-import asyncio
 from flask import Flask, request, jsonify
-from concurrent.futures import ThreadPoolExecutor
 import logging
 from dotenv import load_dotenv
 
@@ -21,9 +19,6 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-
-# Thread pool for running async functions
-executor = ThreadPoolExecutor(max_workers=50)
 
 # Admin API key for internal use
 ADMIN_API_KEY = os.getenv('CONCURRENT_DOCKER_ADMIN_API_KEY')
@@ -50,22 +45,10 @@ def verify_api_key(headers):
     raise ValueError("No valid API key provided. Either provide X-Admin-API-Key or X-Replicate-API-Key header")
 
 
-async def run_generation_with_concurrency(model_name: str, prompt: str, api_key: str, **kwargs):
+def run_generation_with_concurrency(model_name: str, prompt: str, api_key: str, **kwargs):
     """Run image generation with concurrency control"""
-    async def generate():
-        return await generate_image(model_name, prompt, api_key, **kwargs)
-    
-    return await with_concurrency_control(generate())
-
-
-def run_async_in_thread(coro):
-    """Run async coroutine in a new event loop (for thread execution)"""
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    try:
-        return loop.run_until_complete(coro)
-    finally:
-        loop.close()
+    with concurrency_manager:
+        return generate_image(model_name, prompt, api_key, **kwargs)
 
 
 @app.route('/health', methods=['GET'])
@@ -115,14 +98,8 @@ def generate():
         # Extract other parameters
         kwargs = {k: v for k, v in data.items() if k not in ['model_name', 'prompt']}
         
-        # Run generation in thread pool
-        future = executor.submit(
-            run_async_in_thread,
-            run_generation_with_concurrency(model_name, prompt, api_key, **kwargs)
-        )
-        
-        # Wait for result
-        saved_files = future.result(timeout=300)  # 5 minute timeout
+        # Run generation with concurrency control
+        saved_files = run_generation_with_concurrency(model_name, prompt, api_key, **kwargs)
         
         return jsonify({
             'success': True,
@@ -181,10 +158,10 @@ def generate_batch():
         # Extract other parameters
         kwargs = {k: v for k, v in data.items() if k not in ['prompts', 'model_name', 'custom_filenames']}
         
-        # Process all prompts
-        async def process_batch():
-            tasks = []
-            for i, prompt in enumerate(prompts):
+        # Process all prompts sequentially with concurrency control
+        results = []
+        for i, prompt in enumerate(prompts):
+            try:
                 # Create unique output directory for each prompt
                 prompt_kwargs = kwargs.copy()
                 if 'output_dir' not in prompt_kwargs:
@@ -194,16 +171,10 @@ def generate_batch():
                 if custom_filenames and i < len(custom_filenames):
                     prompt_kwargs['custom_filename'] = custom_filenames[i]
                 
-                task = run_generation_with_concurrency(model_name, prompt, api_key, **prompt_kwargs)
-                tasks.append(task)
-            
-            # Wait for all tasks to complete
-            results = await asyncio.gather(*tasks, return_exceptions=True)
-            return results
-        
-        # Run batch processing in thread pool
-        future = executor.submit(run_async_in_thread, process_batch())
-        results = future.result(timeout=600)  # 10 minute timeout for batch
+                result = run_generation_with_concurrency(model_name, prompt, api_key, **prompt_kwargs)
+                results.append(result)
+            except Exception as e:
+                results.append(e)
         
         # Process results
         successful_results = []

@@ -1,15 +1,15 @@
 # Replicate Concurrent Generation API
 
-A high-performance Docker service for concurrent image generation using Replicate models with intelligent concurrency management and dual authentication system.
+A high-performance Docker service for concurrent image generation using Replicate models with intelligent, thread-safe concurrency management and a dual authentication system.
 
 ## 🚀 Features
 
-- ✅ **True Concurrent Processing**: Multi-threaded async architecture for simultaneous requests
-- ✅ **Smart Rate Limiting**: Built-in concurrency control prevents API quota violations  
-- ✅ **Dual Authentication**: Admin keys for internal services + user credentials for external clients
-- ✅ **Production Ready**: Docker containerized with health monitoring and status endpoints
-- ✅ **Multiple Models**: Support for Flux, Qwen, and other popular Replicate models
-- ✅ **Flexible Output**: Configurable formats, aspect ratios, and generation parameters
+- ✅ **True Concurrent Processing**: Robust, multi-threaded architecture with a thread-safe global semaphore for true concurrent processing.
+- ✅ **Smart Rate Limiting**: Built-in concurrency control prevents API quota violations.
+- ✅ **Dual Authentication**: Admin keys for internal services + user credentials for external clients.
+- ✅ **Production Ready**: Docker containerized with health monitoring and status endpoints.
+- ✅ **Multiple Models**: Support for Flux, Qwen, and other popular Replicate models.
+- ✅ **Flexible Output**: Configurable formats, aspect ratios, and generation parameters.
 
 ## 📦 Supported Models
 
@@ -447,8 +447,7 @@ python app.py
 
 - **Concurrent Limit**: Default 60 simultaneous requests
 - **Rate Limit**: Default 600 requests per minute  
-- **Thread Pool**: 50 worker threads for async processing
-- **Timeouts**: 5 minutes for single images, 10 minutes for batches
+- **Concurrency Model**: A thread-safe global semaphore ensures that the number of concurrent requests never exceeds the configured limit, preventing API quota violations.
 
 ## 🐛 Troubleshooting
 
@@ -468,6 +467,7 @@ python app.py
 
 ## 🔄 Version History
 
+- **v2.1 (Current)**: Critical architecture fix. Replaced flawed `asyncio` implementation with a robust, thread-safe `threading.Semaphore` for true global concurrency control. Simplified architecture by removing `ThreadPoolExecutor` and converting model functions to synchronous operations.
 - **v2.0**: Major rewrite with async architecture, bug fixes, and improved concurrency
 - **v1.x**: Initial version with complex model support
 
@@ -485,6 +485,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-**Version:** 2.0  
+**Version:** 2.1  
 **Docker Hub:** `betashow/replicate-concurrent-generation:latest`  
 **Base Image:** `python:3.11-slim`

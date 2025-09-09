@@ -4,10 +4,9 @@ Extracted from the original replicate_batch_process project
 Only supports flux-dev, flux-kontext-max, and qwen models
 """
 
-import asyncio
-import aiohttp
 import os
 import replicate
+import requests
 from typing import Dict, Any, List, Optional
 
 
@@ -88,17 +87,16 @@ def validate_and_filter_params(model_name: str, params: Dict[str, Any]) -> Dict[
     return filtered_params
 
 
-async def download_file_from_url(url: str, output_path: str) -> str:
-    """Download a file from URL asynchronously"""
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            response.raise_for_status()
-            with open(output_path, 'wb') as f:
-                f.write(await response.read())
+def download_file_from_url(url: str, output_path: str) -> str:
+    """Download a file from URL"""
+    response = requests.get(url)
+    response.raise_for_status()
+    with open(output_path, 'wb') as f:
+        f.write(response.content)
     return output_path
 
 
-async def flux_dev_generate(prompt: str, api_key: Optional[str] = None, **kwargs) -> List[str]:
+def flux_dev_generate(prompt: str, api_key: Optional[str] = None, **kwargs) -> List[str]:
     """
     Generate images using black-forest-labs/flux-dev model
     
@@ -122,8 +120,8 @@ async def flux_dev_generate(prompt: str, api_key: Optional[str] = None, **kwargs
     params = {'prompt': prompt, **kwargs}
     filtered_params = validate_and_filter_params(model_name, params)
     
-    # Run the model in a thread pool to avoid blocking
-    output = await asyncio.to_thread(replicate.run, model_name, input=filtered_params)
+    # Run the model
+    output = replicate.run(model_name, input=filtered_params)
     
     # Process output files
     saved_files = []
@@ -151,7 +149,7 @@ async def flux_dev_generate(prompt: str, api_key: Optional[str] = None, **kwargs
         
         if isinstance(item, str) and item.startswith(('http://', 'https://')):
             # Download from URL
-            await download_file_from_url(item, output_path)
+            download_file_from_url(item, output_path)
         elif hasattr(item, 'read'):
             # File object
             with open(output_path, 'wb') as f:
@@ -169,7 +167,7 @@ async def flux_dev_generate(prompt: str, api_key: Optional[str] = None, **kwargs
     return saved_files
 
 
-async def flux_kontext_max_generate(prompt: str, api_key: Optional[str] = None, **kwargs) -> List[str]:
+def flux_kontext_max_generate(prompt: str, api_key: Optional[str] = None, **kwargs) -> List[str]:
     """
     Generate images using black-forest-labs/flux-kontext-max model
     
@@ -193,8 +191,8 @@ async def flux_kontext_max_generate(prompt: str, api_key: Optional[str] = None, 
     params = {'prompt': prompt, **kwargs}
     filtered_params = validate_and_filter_params(model_name, params)
     
-    # Run the model in a thread pool to avoid blocking
-    output = await asyncio.to_thread(replicate.run, model_name, input=filtered_params)
+    # Run the model
+    output = replicate.run(model_name, input=filtered_params)
     
     # Process output files
     saved_files = []
@@ -222,7 +220,7 @@ async def flux_kontext_max_generate(prompt: str, api_key: Optional[str] = None, 
         
         if isinstance(item, str) and item.startswith(('http://', 'https://')):
             # Download from URL
-            await download_file_from_url(item, output_path)
+            download_file_from_url(item, output_path)
         elif hasattr(item, 'read'):
             # File object
             with open(output_path, 'wb') as f:
@@ -240,7 +238,7 @@ async def flux_kontext_max_generate(prompt: str, api_key: Optional[str] = None, 
     return saved_files
 
 
-async def qwen_image_generate(prompt: str, api_key: Optional[str] = None, **kwargs) -> List[str]:
+def qwen_image_generate(prompt: str, api_key: Optional[str] = None, **kwargs) -> List[str]:
     """
     Generate images using qwen/qwen-image model
     
@@ -264,8 +262,8 @@ async def qwen_image_generate(prompt: str, api_key: Optional[str] = None, **kwar
     params = {'prompt': prompt, **kwargs}
     filtered_params = validate_and_filter_params(model_name, params)
     
-    # Run the model in a thread pool to avoid blocking
-    output = await asyncio.to_thread(replicate.run, model_name, input=filtered_params)
+    # Run the model
+    output = replicate.run(model_name, input=filtered_params)
     
     # Process output files
     saved_files = []
@@ -293,7 +291,7 @@ async def qwen_image_generate(prompt: str, api_key: Optional[str] = None, **kwar
         
         if isinstance(item, str) and item.startswith(('http://', 'https://')):
             # Download from URL
-            await download_file_from_url(item, output_path)
+            download_file_from_url(item, output_path)
         elif hasattr(item, 'read'):
             # File object
             with open(output_path, 'wb') as f:
@@ -323,7 +321,7 @@ MODEL_FUNCTIONS = {
 }
 
 
-async def generate_image(model_name: str, prompt: str, api_key: Optional[str] = None, **kwargs) -> List[str]:
+def generate_image(model_name: str, prompt: str, api_key: Optional[str] = None, **kwargs) -> List[str]:
     """
     Generic function to generate images with any of the supported models
     
@@ -340,4 +338,4 @@ async def generate_image(model_name: str, prompt: str, api_key: Optional[str] = 
         raise ValueError(f"Model '{model_name}' not supported. Available models: {list(MODEL_FUNCTIONS.keys())}")
     
     model_function = MODEL_FUNCTIONS[model_name]
-    return await model_function(prompt, api_key, **kwargs)
+    return model_function(prompt, api_key, **kwargs)
