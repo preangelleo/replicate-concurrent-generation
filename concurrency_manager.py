@@ -25,7 +25,7 @@ class SimpleConcurrencyManager:
             # Rate limiting settings
             self.max_requests_per_minute = 600  # Default Replicate limit
             self.semaphore = None
-            self.concurrent_limit = 10  # Max concurrent requests
+            self.concurrent_limit = 60  # Max concurrent requests
             
             # Request tracking for rate limiting
             self.request_times = []

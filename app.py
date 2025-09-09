@@ -279,7 +279,7 @@ def configure():
 
 if __name__ == '__main__':
     # Configure concurrency from environment
-    concurrent_limit = int(os.getenv('REPLICATE_CONCURRENT_LIMIT', 10))
+    concurrent_limit = int(os.getenv('REPLICATE_CONCURRENT_LIMIT', 60))
     requests_per_minute = int(os.getenv('REPLICATE_REQUESTS_PER_MINUTE', 600))
     
     # Get port and host from environment
