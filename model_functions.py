@@ -131,13 +131,22 @@ async def flux_dev_generate(prompt: str, api_key: Optional[str] = None, **kwargs
     os.makedirs(output_dir, exist_ok=True)
     
     # Handle output (can be single file or list)
-    if hasattr(output, '__iter__') and not isinstance(output, (str, bytes)):
-        output_list = list(output)
+    if isinstance(output, list):
+        output_list = output
     else:
         output_list = [output]
     
     for index, item in enumerate(output_list):
-        filename = f"flux_dev_{index+1}.jpg" if len(output_list) > 1 else "flux_dev.jpg"
+        # Use custom filename if provided, otherwise use default naming
+        custom_filename = kwargs.get('custom_filename')
+        if custom_filename:
+            # If custom filename provided, use it (with extension if not provided)
+            base_name = custom_filename
+            if not any(base_name.endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.webp']):
+                base_name += '.jpg'
+            filename = f"{base_name.rsplit('.', 1)[0]}_{index+1}.jpg" if len(output_list) > 1 else base_name
+        else:
+            filename = f"flux_dev_{index+1}.jpg" if len(output_list) > 1 else "flux_dev.jpg"
         output_path = os.path.join(output_dir, filename)
         
         if isinstance(item, str) and item.startswith(('http://', 'https://')):
@@ -193,13 +202,22 @@ async def flux_kontext_max_generate(prompt: str, api_key: Optional[str] = None, 
     os.makedirs(output_dir, exist_ok=True)
     
     # Handle output (can be single file or list)
-    if hasattr(output, '__iter__') and not isinstance(output, (str, bytes)):
-        output_list = list(output)
+    if isinstance(output, list):
+        output_list = output
     else:
         output_list = [output]
     
     for index, item in enumerate(output_list):
-        filename = f"flux_kontext_max_{index+1}.png" if len(output_list) > 1 else "flux_kontext_max.png"
+        # Use custom filename if provided, otherwise use default naming
+        custom_filename = kwargs.get('custom_filename')
+        if custom_filename:
+            # If custom filename provided, use it (with extension if not provided)
+            base_name = custom_filename
+            if not any(base_name.endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.webp']):
+                base_name += '.png'
+            filename = f"{base_name.rsplit('.', 1)[0]}_{index+1}.png" if len(output_list) > 1 else base_name
+        else:
+            filename = f"flux_kontext_max_{index+1}.png" if len(output_list) > 1 else "flux_kontext_max.png"
         output_path = os.path.join(output_dir, filename)
         
         if isinstance(item, str) and item.startswith(('http://', 'https://')):
@@ -255,13 +273,22 @@ async def qwen_image_generate(prompt: str, api_key: Optional[str] = None, **kwar
     os.makedirs(output_dir, exist_ok=True)
     
     # Handle output (can be single file or list)
-    if hasattr(output, '__iter__') and not isinstance(output, (str, bytes)):
-        output_list = list(output)
+    if isinstance(output, list):
+        output_list = output
     else:
         output_list = [output]
     
     for index, item in enumerate(output_list):
-        filename = f"qwen_image_{index+1}.webp" if len(output_list) > 1 else "qwen_image.webp"
+        # Use custom filename if provided, otherwise use default naming
+        custom_filename = kwargs.get('custom_filename')
+        if custom_filename:
+            # If custom filename provided, use it (with extension if not provided)
+            base_name = custom_filename
+            if not any(base_name.endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.webp']):
+                base_name += '.webp'
+            filename = f"{base_name.rsplit('.', 1)[0]}_{index+1}.webp" if len(output_list) > 1 else base_name
+        else:
+            filename = f"qwen_image_{index+1}.webp" if len(output_list) > 1 else "qwen_image.webp"
         output_path = os.path.join(output_dir, filename)
         
         if isinstance(item, str) and item.startswith(('http://', 'https://')):

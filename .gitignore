@@ -26,4 +26,5 @@ output/
 Thumbs.db
 
 # Local environment (will be handled in production)
-# .env
+.env
+.env.*

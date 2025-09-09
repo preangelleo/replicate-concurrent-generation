@@ -154,12 +154,20 @@ def generate_batch():
         # Validate required fields
         prompts = data.get('prompts', [])
         model_name = data.get('model_name')
+        custom_filenames = data.get('custom_filenames', [])
         
         if not prompts:
             return jsonify({'error': 'prompts array is required'}), 400
         
         if not isinstance(prompts, list):
             return jsonify({'error': 'prompts must be an array'}), 400
+        
+        # Validate custom_filenames if provided
+        if custom_filenames:
+            if not isinstance(custom_filenames, list):
+                return jsonify({'error': 'custom_filenames must be an array'}), 400
+            if len(custom_filenames) != len(prompts):
+                return jsonify({'error': 'custom_filenames length must match prompts length'}), 400
         
         if not model_name:
             return jsonify({'error': 'model_name is required'}), 400
@@ -171,7 +179,7 @@ def generate_batch():
             }), 400
         
         # Extract other parameters
-        kwargs = {k: v for k, v in data.items() if k not in ['prompts', 'model_name']}
+        kwargs = {k: v for k, v in data.items() if k not in ['prompts', 'model_name', 'custom_filenames']}
         
         # Process all prompts
         async def process_batch():
@@ -181,6 +189,10 @@ def generate_batch():
                 prompt_kwargs = kwargs.copy()
                 if 'output_dir' not in prompt_kwargs:
                     prompt_kwargs['output_dir'] = f'output/batch_{i+1}'
+                
+                # Add custom filename if provided
+                if custom_filenames and i < len(custom_filenames):
+                    prompt_kwargs['custom_filename'] = custom_filenames[i]
                 
                 task = run_generation_with_concurrency(model_name, prompt, api_key, **prompt_kwargs)
                 tasks.append(task)
