@@ -1,31 +1,20 @@
-# Replicate Concurrent Generation API v3.0
+# Replicate Concurrent Generation API
 
-🚀 **A revolutionary Docker service for concurrent image generation using Replicate models with External Semaphore Pattern, 3-tier authentication, and URL-direct-return architecture.**
+A high-performance Docker service for concurrent image generation using Replicate models with External Semaphore Pattern, 3-tier authentication, and URL-direct-return architecture.
 
-## 🌟 Version 3.0 - Major Breakthrough Features
+## Purpose & Overview
 
-### 🎯 Core Innovation: External Semaphore Pattern
-- **Cross-service concurrency control**: Share concurrency limits across multiple service instances
-- **True global rate limiting**: Never exceed API account limits regardless of service scaling
-- **Dynamic semaphore management**: Create and manage global semaphores via API
+This service provides efficient concurrent access to Replicate's image generation models while maintaining proper rate limiting and API quota management. It's designed for applications that need to generate multiple images simultaneously without exceeding account limits or encountering rate limiting errors.
 
-### 🔒 3-Tier Authentication System
-- **Tier 1**: Admin API Key (Header) → Server credentials
-- **Tier 2**: User credentials (Request payload) → User's own credentials
-- **Tier 3**: Environment fallback → Server credentials (backward compatibility)
+### Key Features
 
-### 📦 Perfect Input/Output Structure Correspondence
-- **Input**: List of dictionary format with task objects
-- **Output**: Corresponding list of dictionary with URL and filename mapping
-- **1:1 correspondence**: Each input task maps exactly to output result
+- **External Semaphore Pattern**: Cross-service concurrency control for multi-service deployments
+- **3-tier authentication system**: Flexible authentication for different deployment scenarios  
+- **URL Direct Return**: Direct Replicate URL responses eliminating file management overhead
+- **Perfect Input/Output Correspondence**: List of Dict structure with exact task mapping
+- **Global Rate Limiting**: Prevents API account limit violations regardless of concurrent load
 
-### 🔗 URL Direct Return (Security Revolution)
-- **No file management**: Directly return Replicate URLs, eliminate local files
-- **100% Safe**: No file deletion timing issues
-- **Faster**: No download/upload delays
-- **Storage efficient**: Docker images never grow
-
-## 📦 Supported Models
+## Supported Models
 
 | Model | ID | Purpose | Key Features |
 |-------|----|---------| -------------|
@@ -33,19 +22,19 @@
 | **Flux Context Max** | `flux-kontext-max` | Image editing/context | Input image support, context-aware |
 | **Qwen Image** | `qwen-image` | Chinese-optimized | Supports Chinese prompts, cultural content |
 
-## 🐳 Quick Start with Docker
+## Quick Start with Docker
 
 ```bash
-# Pull and run v3.0 image
+# Pull and run the latest image
 docker run -d \
-  --name replicate-generation-v3 \
+  --name replicate-generation \
   -p 5003:5003 \
   -e REPLICATE_API_TOKEN="r8_your_replicate_token_here" \
   -e CONCURRENT_DOCKER_ADMIN_API_KEY="your_secure_admin_key" \
   betashow/replicate-concurrent-generation:v3.0
 ```
 
-## ⚙️ Environment Configuration
+## Environment Configuration
 
 Create a `.env` file:
 
@@ -61,14 +50,14 @@ REPLICATE_CONCURRENT_LIMIT=60
 REPLICATE_REQUESTS_PER_MINUTE=600
 ```
 
-## 🔌 API Reference v3.0
+## API Reference
 
 ### Base URL
 ```
 http://localhost:5003
 ```
 
-### 🔒 Authentication Options
+### Authentication Options
 
 #### Option 1: Admin API Key (Header) - Recommended for Internal Services
 ```http
@@ -88,7 +77,7 @@ Uses server's configured Replicate token with highest priority.
 #### Option 3: Environment Fallback (Backward Compatibility)
 No authentication headers - uses server environment variables.
 
-### 🌐 External Semaphore Management
+### External Semaphore Management
 
 #### List Global Semaphores
 ```http
@@ -114,7 +103,7 @@ X-Admin-API-Key: your_admin_key
 }
 ```
 
-### 🎨 Image Generation Endpoints
+### Image Generation Endpoints
 
 #### 1. Health Check
 ```http
@@ -126,7 +115,7 @@ GET /health
 {
   "status": "healthy",
   "service": "replicate-concurrent-generation",
-  "version": "3.0-volcengine-enhanced (External Semaphore Pattern + URL-Direct-Return)",
+  "version": "3.0 (External Semaphore Pattern + URL-Direct-Return)",
   "supported_models": ["flux-dev", "flux-kontext-max", "qwen-image"],
   "concurrency_status": {
     "concurrent_limit": 60,
@@ -135,7 +124,7 @@ GET /health
 }
 ```
 
-#### 2. Single Image Generation (New v3.0 Format)
+#### 2. Single Image Generation
 ```http
 POST /generate
 Content-Type: application/json
@@ -150,7 +139,7 @@ X-Admin-API-Key: your_admin_key
 }
 ```
 
-**Response (New v3.0 Format):**
+**Response:**
 ```json
 {
   "success": true,
@@ -169,9 +158,9 @@ X-Admin-API-Key: your_admin_key
 }
 ```
 
-#### 3. Batch Generation (Revolutionary v3.0 Structure)
+#### 3. Batch Generation
 
-**New Tasks Format (List of Dictionary):**
+**Tasks Format (List of Dictionary):**
 ```http
 POST /generate-batch
 Content-Type: application/json
@@ -265,7 +254,7 @@ X-Admin-API-Key: your_admin_key
 }
 ```
 
-### 🎯 v3.0 Key Benefits: Input/Output Perfect Correspondence
+### Key Benefits: Input/Output Perfect Correspondence
 
 #### Input Structure:
 - **Tasks Array**: List of task objects
@@ -278,7 +267,7 @@ X-Admin-API-Key: your_admin_key
 - **Generated Files**: Array of `{url, filename}` objects
 - **Perfect Mapping**: `tasks[i]` → `successful_results[i]`
 
-## 🔧 Advanced Features
+## Advanced Features
 
 ### External Semaphore Integration
 ```json
@@ -311,7 +300,7 @@ X-Admin-API-Key: your_admin_key
 ```
 **Result**: `variations_1.jpg`, `variations_2.jpg`, `variations_3.jpg`, `variations_4.jpg`
 
-## 🎨 Complete Model Parameters
+## Complete Model Parameters
 
 ### 1. Flux Dev (`flux-dev`)
 ```json
@@ -364,7 +353,7 @@ X-Admin-API-Key: your_admin_key
 ```json
 {
   "model_name": "qwen-image",
-  "prompt": "支持中文提示词",
+  "prompt": "A beautiful landscape",
   "output_filename": "qwen_artwork",
   
   // Image Settings  
@@ -385,21 +374,7 @@ X-Admin-API-Key: your_admin_key
 }
 ```
 
-## 🏗️ Architecture Comparison
-
-### v2.0 vs v3.0 Revolutionary Improvements
-
-| Feature | v2.0 | v3.0 |
-|---------|------|------|
-| **File Management** | Local download + cleanup issues | ✅ URL direct return (100% safe) |
-| **Concurrency** | Individual service limits | ✅ External Semaphore Pattern (global control) |
-| **Authentication** | Simple API key | ✅ 3-tier authentication system |
-| **Input Format** | Separate arrays (prompts + filenames) | ✅ List of dictionary (structured) |
-| **Output Format** | File paths | ✅ URL + filename correspondence |
-| **Cross-service** | Not supported | ✅ Global semaphore sharing |
-| **Safety** | File deletion timing risks | ✅ No file management needed |
-
-## 🐳 Docker Deployment
+## Docker Deployment
 
 ### Production Deployment
 ```bash
@@ -416,11 +391,11 @@ docker run -d \
   betashow/replicate-concurrent-generation:v3.0
 ```
 
-### Docker Compose v3.0
+### Docker Compose
 ```yaml
 version: '3.8'
 services:
-  replicate-generation-v3:
+  replicate-generation:
     image: betashow/replicate-concurrent-generation:v3.0
     ports:
       - "5003:5003"
@@ -436,7 +411,7 @@ services:
       retries: 3
 ```
 
-## 📊 Error Handling v3.0
+## Error Handling
 
 ### Authentication Errors
 ```json
@@ -475,7 +450,7 @@ services:
 }
 ```
 
-## 🔒 Security Features v3.0
+## Security Features
 
 ### Multi-tier Authentication
 - **Admin keys**: Full access to server resources
@@ -492,7 +467,7 @@ services:
 - **Isolated access**: Each semaphore operates independently
 - **Thread-safe**: Robust concurrent access control
 
-## 📈 Performance Improvements v3.0
+## Performance Features
 
 ### Speed Enhancements
 - **URL Return**: Eliminate file download/upload overhead
@@ -509,7 +484,7 @@ services:
 - **Dynamic Semaphore Management**: Create semaphores on demand
 - **Flexible Authentication**: Support various deployment scenarios
 
-## 🧪 Testing v3.0
+## Testing
 
 ### Health Check Test
 ```bash
@@ -578,51 +553,14 @@ curl -X POST http://localhost:5003/generate \
   }'
 ```
 
-## 🔄 Migration from v2.0 to v3.0
-
-### Backward Compatibility
-v3.0 maintains **full backward compatibility** with v2.0 APIs:
-
-```json
-// v2.0 format still works
-{
-  "model_name": "flux-dev",
-  "prompts": ["Image 1", "Image 2"],
-  "custom_filenames": ["img1", "img2"]
-}
-
-// v3.0 recommended format
-{
-  "model_name": "flux-dev", 
-  "tasks": [
-    {"prompt": "Image 1", "output_filename": "img1"},
-    {"prompt": "Image 2", "output_filename": "img2"}
-  ]
-}
-```
-
-### Upgrade Benefits
-1. **Immediate**: URL return eliminates file safety concerns
-2. **Scalable**: External semaphore enables global concurrency
-3. **Secure**: 3-tier authentication provides flexibility
-4. **Structured**: Input/output correspondence improves UX
-
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/v3-enhancement`)
-3. Commit your changes (`git commit -m 'Add v3.0 enhancement'`)  
-4. Push to branch (`git push origin feature/v3-enhancement`)
+2. Create a feature branch (`git checkout -b feature/enhancement`)
+3. Commit your changes (`git commit -m 'Add enhancement'`)  
+4. Push to branch (`git push origin feature/enhancement`)
 5. Open a Pull Request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
----
-
-**Version:** 3.0-volcengine-enhanced (External Semaphore Pattern + URL-Direct-Return)  
-**Docker Hub:** `betashow/replicate-concurrent-generation:v3.0`  
-**Base Image:** `python:3.11-slim`  
-**Release Date:** 2025-09-10  
-**Architecture:** External Semaphore Pattern + 3-Tier Authentication + URL-Direct-Return
