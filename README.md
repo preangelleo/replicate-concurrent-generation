@@ -31,7 +31,44 @@ docker run -d \
   -p 5003:5003 \
   -e REPLICATE_API_TOKEN="r8_your_replicate_token_here" \
   -e CONCURRENT_DOCKER_ADMIN_API_KEY="your_secure_admin_key" \
-  betashow/replicate-concurrent-generation:v3.0
+  betashow/replicate-concurrent-generation:latest
+```
+
+## Service Health & Status
+
+Visit the service root endpoint for immediate health status and service information:
+
+**🌐 Browser Access**: `https://your-domain.com/api/replicate-concurrent-generation/`
+
+Returns beautiful JSON with:
+- Service status and version information
+- Architecture features (External Semaphore Pattern, etc.)
+- Current concurrency limits and available slots
+- Authentication configuration status
+- Semaphore initialization status
+
+**Example Response:**
+```json
+{
+  "status": "healthy",
+  "service": "replicate-concurrent-generation", 
+  "version": "3.0.0-external-semaphore-enhanced",
+  "message": "Enhanced Replicate Concurrent Generation with External Semaphore Pattern",
+  "architecture": {
+    "external_semaphore_pattern": "✅ Enabled",
+    "perfect_input_output_correspondence": "✅ Enabled",
+    "advanced_batch_processing": "✅ Enabled",
+    "cross_service_coordination": "✅ Enabled"
+  },
+  "concurrency_status": {
+    "global_concurrency_limit": 60,
+    "current_available_slots": 60,
+    "external_semaphores_count": 1
+  },
+  "semaphore_status": "initialized",
+  "admin_key_configured": true,
+  "server_credentials_configured": true
+}
 ```
 
 ## Environment Configuration
