@@ -464,7 +464,7 @@ def status():
     status = get_concurrency_status()
     return jsonify({
         'service': 'replicate-concurrent-generation',
-        'version': '2.0-simple',
+        'version': '3.0-volcengine-enhanced (External Semaphore Pattern + URL-Direct-Return)',
         'admin_api_configured': bool(ADMIN_API_KEY),
         'default_replicate_key_configured': bool(DEFAULT_REPLICATE_API_KEY),
         'concurrency': status
@@ -550,7 +550,7 @@ if __name__ == '__main__':
     requests_per_minute = int(os.getenv('REPLICATE_REQUESTS_PER_MINUTE', 600))
     
     # Get port and host from environment
-    port = int(os.getenv('FLASK_PORT', 5000))
+    port = int(os.getenv('FLASK_PORT', 5003))
     host = os.getenv('FLASK_HOST', '0.0.0.0')
     
     concurrency_manager.configure(concurrent_limit, requests_per_minute)
