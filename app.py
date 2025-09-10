@@ -161,6 +161,38 @@ def run_generation_with_concurrency(model_name: str, prompt: str, api_key: str,
             return generate_image(model_name, prompt, api_key, **kwargs)
 
 
+@app.route('/', methods=['GET'])
+def root():
+    """Root endpoint with service information"""
+    status = get_concurrency_status()
+    global_semaphores = list_global_semaphores()
+    
+    return jsonify({
+        'status': 'healthy',
+        'service': 'replicate-concurrent-generation',
+        'version': '3.0.0-external-semaphore-enhanced',
+        'message': 'Enhanced Replicate Concurrent Generation with External Semaphore Pattern',
+        'architecture': {
+            'external_semaphore_pattern': '✅ Enabled',
+            'perfect_input_output_correspondence': '✅ Enabled',
+            'advanced_batch_processing': '✅ Enabled',
+            'cross_service_coordination': '✅ Enabled'
+        },
+        'concurrency_status': {
+            'global_concurrency_limit': status.get('concurrent_limit', 'N/A'),
+            'current_available_slots': status.get('available_slots', 'N/A'),
+            'external_semaphores_count': len(global_semaphores)
+        },
+        'semaphore_status': 'initialized',
+        'admin_key_configured': bool(ADMIN_API_KEY),
+        'server_credentials_configured': bool(DEFAULT_REPLICATE_API_KEY),
+        'authentication': {
+            'admin_api_key': '✅ Admin-API-Key header authentication',
+            'user_credentials': '✅ User-provided credentials in payload',
+            'environment_variables': '✅ Environment variable fallback'
+        }
+    })
+
 @app.route('/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
