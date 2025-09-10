@@ -106,7 +106,7 @@ def flux_dev_generate(prompt: str, api_key: Optional[str] = None, **kwargs) -> L
         **kwargs: Additional parameters for the model
     
     Returns:
-        List of saved file paths
+        List of image URLs (no longer downloads files)
     """
     # Set API key
     if api_key:
@@ -123,48 +123,11 @@ def flux_dev_generate(prompt: str, api_key: Optional[str] = None, **kwargs) -> L
     # Run the model
     output = replicate.run(model_name, input=filtered_params)
     
-    # Process output files
-    saved_files = []
-    output_dir = kwargs.get('output_dir', 'output')
-    os.makedirs(output_dir, exist_ok=True)
-    
-    # Handle output (can be single file or list)
+    # Return URLs directly instead of downloading files
     if isinstance(output, list):
-        output_list = output
+        return [str(item) for item in output]
     else:
-        output_list = [output]
-    
-    for index, item in enumerate(output_list):
-        # Use custom filename if provided, otherwise use default naming
-        custom_filename = kwargs.get('custom_filename')
-        if custom_filename:
-            # If custom filename provided, use it (with extension if not provided)
-            base_name = custom_filename
-            if not any(base_name.endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.webp']):
-                base_name += '.jpg'
-            filename = f"{base_name.rsplit('.', 1)[0]}_{index+1}.jpg" if len(output_list) > 1 else base_name
-        else:
-            filename = f"flux_dev_{index+1}.jpg" if len(output_list) > 1 else "flux_dev.jpg"
-        output_path = os.path.join(output_dir, filename)
-        
-        if isinstance(item, str) and item.startswith(('http://', 'https://')):
-            # Download from URL
-            download_file_from_url(item, output_path)
-        elif hasattr(item, 'read'):
-            # File object
-            with open(output_path, 'wb') as f:
-                f.write(item.read())
-        else:
-            # Direct bytes or other data
-            with open(output_path, 'wb') as f:
-                if isinstance(item, bytes):
-                    f.write(item)
-                else:
-                    f.write(str(item).encode('utf-8'))
-        
-        saved_files.append(output_path)
-    
-    return saved_files
+        return [str(output)]
 
 
 def flux_kontext_max_generate(prompt: str, api_key: Optional[str] = None, **kwargs) -> List[str]:
@@ -177,7 +140,7 @@ def flux_kontext_max_generate(prompt: str, api_key: Optional[str] = None, **kwar
         **kwargs: Additional parameters for the model (supports input_image for editing)
     
     Returns:
-        List of saved file paths
+        List of image URLs (no longer downloads files)
     """
     # Set API key
     if api_key:
@@ -194,48 +157,11 @@ def flux_kontext_max_generate(prompt: str, api_key: Optional[str] = None, **kwar
     # Run the model
     output = replicate.run(model_name, input=filtered_params)
     
-    # Process output files
-    saved_files = []
-    output_dir = kwargs.get('output_dir', 'output')
-    os.makedirs(output_dir, exist_ok=True)
-    
-    # Handle output (can be single file or list)
+    # Return URLs directly instead of downloading files
     if isinstance(output, list):
-        output_list = output
+        return [str(item) for item in output]
     else:
-        output_list = [output]
-    
-    for index, item in enumerate(output_list):
-        # Use custom filename if provided, otherwise use default naming
-        custom_filename = kwargs.get('custom_filename')
-        if custom_filename:
-            # If custom filename provided, use it (with extension if not provided)
-            base_name = custom_filename
-            if not any(base_name.endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.webp']):
-                base_name += '.png'
-            filename = f"{base_name.rsplit('.', 1)[0]}_{index+1}.png" if len(output_list) > 1 else base_name
-        else:
-            filename = f"flux_kontext_max_{index+1}.png" if len(output_list) > 1 else "flux_kontext_max.png"
-        output_path = os.path.join(output_dir, filename)
-        
-        if isinstance(item, str) and item.startswith(('http://', 'https://')):
-            # Download from URL
-            download_file_from_url(item, output_path)
-        elif hasattr(item, 'read'):
-            # File object
-            with open(output_path, 'wb') as f:
-                f.write(item.read())
-        else:
-            # Direct bytes or other data
-            with open(output_path, 'wb') as f:
-                if isinstance(item, bytes):
-                    f.write(item)
-                else:
-                    f.write(str(item).encode('utf-8'))
-        
-        saved_files.append(output_path)
-    
-    return saved_files
+        return [str(output)]
 
 
 def qwen_image_generate(prompt: str, api_key: Optional[str] = None, **kwargs) -> List[str]:
@@ -248,7 +174,7 @@ def qwen_image_generate(prompt: str, api_key: Optional[str] = None, **kwargs) ->
         **kwargs: Additional parameters for the model
     
     Returns:
-        List of saved file paths
+        List of image URLs (no longer downloads files)
     """
     # Set API key
     if api_key:
@@ -265,48 +191,11 @@ def qwen_image_generate(prompt: str, api_key: Optional[str] = None, **kwargs) ->
     # Run the model
     output = replicate.run(model_name, input=filtered_params)
     
-    # Process output files
-    saved_files = []
-    output_dir = kwargs.get('output_dir', 'output')
-    os.makedirs(output_dir, exist_ok=True)
-    
-    # Handle output (can be single file or list)
+    # Return URLs directly instead of downloading files
     if isinstance(output, list):
-        output_list = output
+        return [str(item) for item in output]
     else:
-        output_list = [output]
-    
-    for index, item in enumerate(output_list):
-        # Use custom filename if provided, otherwise use default naming
-        custom_filename = kwargs.get('custom_filename')
-        if custom_filename:
-            # If custom filename provided, use it (with extension if not provided)
-            base_name = custom_filename
-            if not any(base_name.endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.webp']):
-                base_name += '.webp'
-            filename = f"{base_name.rsplit('.', 1)[0]}_{index+1}.webp" if len(output_list) > 1 else base_name
-        else:
-            filename = f"qwen_image_{index+1}.webp" if len(output_list) > 1 else "qwen_image.webp"
-        output_path = os.path.join(output_dir, filename)
-        
-        if isinstance(item, str) and item.startswith(('http://', 'https://')):
-            # Download from URL
-            download_file_from_url(item, output_path)
-        elif hasattr(item, 'read'):
-            # File object
-            with open(output_path, 'wb') as f:
-                f.write(item.read())
-        else:
-            # Direct bytes or other data
-            with open(output_path, 'wb') as f:
-                if isinstance(item, bytes):
-                    f.write(item)
-                else:
-                    f.write(str(item).encode('utf-8'))
-        
-        saved_files.append(output_path)
-    
-    return saved_files
+        return [str(output)]
 
 
 # Model registry for easy access

@@ -29,3 +29,6 @@ Thumbs.db
 # Local environment (will be handled in production)
 .env
 .env.*
+
+# Deployment guides with sensitive information
+DEPLOYMENT_GUIDE.md

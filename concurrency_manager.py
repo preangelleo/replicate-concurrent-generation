@@ -86,38 +86,134 @@ class ThreadSafeConcurrencyManager:
             # Record this request
             self.request_times.append(now)
     
-    def acquire(self):
-        """Acquire permission to make a request (handles both concurrency and rate limiting)"""
+    def acquire(self, external_semaphore=None):
+        """Acquire permission to make a request (handles both concurrency and rate limiting)
+        
+        Args:
+            external_semaphore: Optional external semaphore for global control across services
+        """
         # Check rate limit first (blocking)
         self._check_rate_limit()
         
+        # Use external semaphore for global control or internal for individual control
+        semaphore_to_use = external_semaphore if external_semaphore else self.semaphore
+        
         # Acquire semaphore for concurrency control (blocking)
-        self.semaphore.acquire()
+        semaphore_to_use.acquire()
+        
+        # Store which semaphore we used for release
+        self._current_semaphore = semaphore_to_use
         
         # Get current stats for logging
         with self.rate_limit_lock:
             current_rate = len(self.request_times)
         
         # Note: We can't easily get the exact concurrent count from threading.Semaphore
-        print(f"🟢 Request acquired (rate: {current_rate}/{self.max_requests_per_minute}/min)")
+        semaphore_type = "external" if external_semaphore else "internal"
+        print(f"🟢 Request acquired using {semaphore_type} semaphore (rate: {current_rate}/{self.max_requests_per_minute}/min)")
     
     def release(self):
-        """Release the semaphore"""
-        self.semaphore.release()
+        """Release the appropriate semaphore"""
+        # Release the semaphore we used in acquire
+        semaphore_to_release = getattr(self, '_current_semaphore', self.semaphore)
+        semaphore_to_release.release()
         print(f"🔴 Request released")
     
     def __enter__(self):
         """Context manager entry"""
+        # Use internal semaphore for context manager (backward compatibility)
         self.acquire()
         return self
     
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Context manager exit"""
         self.release()
+    
+    def with_external_semaphore(self, external_semaphore):
+        """Create a context manager that uses an external semaphore"""
+        return ExternalSemaphoreContext(self, external_semaphore)
+
+
+class ExternalSemaphoreContext:
+    """Context manager for using external semaphore with concurrency manager"""
+    
+    def __init__(self, manager, external_semaphore):
+        self.manager = manager
+        self.external_semaphore = external_semaphore
+    
+    def __enter__(self):
+        self.manager.acquire(self.external_semaphore)
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.manager.release()
 
 
 # Global instance - created once and shared across all requests
 concurrency_manager = ThreadSafeConcurrencyManager()
+
+# Global semaphore registry for external semaphore pattern
+_global_semaphores = {}
+_global_semaphores_lock = threading.Lock()
+
+
+def register_global_semaphore(semaphore_id: str, limit: int):
+    """Register a global semaphore for cross-service concurrency control
+    
+    Args:
+        semaphore_id: Unique identifier for the semaphore
+        limit: Maximum concurrent operations allowed
+    
+    Returns:
+        The created threading.Semaphore instance
+    """
+    with _global_semaphores_lock:
+        if semaphore_id in _global_semaphores:
+            print(f"⚠️ Global semaphore '{semaphore_id}' already exists, returning existing one")
+            return _global_semaphores[semaphore_id]
+        
+        semaphore = threading.Semaphore(limit)
+        _global_semaphores[semaphore_id] = semaphore
+        print(f"🌐 Global semaphore '{semaphore_id}' registered with limit {limit}")
+        return semaphore
+
+
+def get_global_semaphore(semaphore_id: str):
+    """Get a registered global semaphore by ID
+    
+    Args:
+        semaphore_id: Unique identifier for the semaphore
+    
+    Returns:
+        The threading.Semaphore instance or None if not found
+    """
+    with _global_semaphores_lock:
+        return _global_semaphores.get(semaphore_id)
+
+
+def list_global_semaphores():
+    """List all registered global semaphores"""
+    with _global_semaphores_lock:
+        return list(_global_semaphores.keys())
+
+
+def run_with_external_semaphore(func, semaphore_id: str, *args, **kwargs):
+    """Run a function with an external global semaphore
+    
+    Args:
+        func: Function to execute
+        semaphore_id: ID of the global semaphore to use
+        *args, **kwargs: Arguments to pass to the function
+    
+    Returns:
+        Function result
+    """
+    global_semaphore = get_global_semaphore(semaphore_id)
+    if not global_semaphore:
+        raise ValueError(f"Global semaphore '{semaphore_id}' not found. Register it first using register_global_semaphore()")
+    
+    with concurrency_manager.with_external_semaphore(global_semaphore):
+        return func(*args, **kwargs)
 
 
 def with_concurrency_control(func):
